@@ -16,7 +16,20 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120)) # creates a column that is a string only consisting of 120 characters
     body = db.Column(db.Text) # creates a text column 
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id')) # connects the user to their blog posts
 
-    def __init__(self, title, body):
+    def __init__(self, title, body, owner):
         self.title = title
         self.body = body
+        self.owner = owner
+
+# creates database of the users for blog posts
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(120), unique=True) # the user name needs to be unique 
+    password = db.column(db.String(120))
+    blog = db.relationship('Blog', backref='owner') # connects the user id to the blog posts
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password

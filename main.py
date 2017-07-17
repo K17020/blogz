@@ -74,10 +74,21 @@ def signup():
                 new_user = User(username, password)
                 db.session.add(new_user)
                 db.session.commit()
-                return redirect('/')
+                return redirect('/newpost')
     
     return render_template('signup.html')
 
+@app.route('/newpost', methods=['POST','GET'])
+def newpost():
+        return render_template("newpost.html")
+
+# route for users to login to their own blog
+@app.route('/login', methods=['POST','GET'])
+def login():
+    error_User = "That username does not exist"
+    error_PW = 'That password is incorrect'
+
+    return render_template("login.html", error_User=error_User, error_PW=error_PW) # renders the template for the user login page
 
 if __name__ == '__main__':
     app.run()

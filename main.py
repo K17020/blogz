@@ -27,9 +27,57 @@ class Blog(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True) # the user name needs to be unique 
-    password = db.column(db.String(120))
+    password = db.Column(db.String(120))
     blog = db.relationship('Blog', backref='owner') # connects the user id to the blog posts
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
+
+@app.route('/')
+def index():
+    return render_template('blog.html')
+
+@app.route('/signup', methods=['POST','GET'])
+def signup():
+    
+    if request.method == 'POST': # if the request is a POST 
+        username = request.form['username'] # Grab information from forms 
+        password = request.form['password']
+        verify_password = request.form['verify_password'] 
+
+        request_username = User.username
+
+        # Error messages 
+        error_User = 'Please enter a username'
+        error_Exist = 'The username already exist'
+        error_PW = 'Please enter a password'
+        error_VPW = 'The password does not match'
+        error_Length = 'The username and password need to be 3 or more characters'
+        
+
+        # Basic validation  
+        if len(username) == 0 or len(password) == 0: # If nothing is entered into the Username or Password return page with error message
+            return render_template('signup.html', error_PW=error_PW,error_User=error_User,username=username)
+        
+        elif len(username) <= 3 or len(password) <= 3: # If the length of the username or password is less then 3 return error message  
+            return render_template('signup.html', username=username, error_PW=error_Length, error_User=error_Length)
+       
+        elif password != verify_password: # If the passwords do not match return the page and error message.
+            return render_template('signup.html',username=username, error_PW=error_VPW) 
+        
+        else:
+            request_username = User.query.filter_by(username=username).first() # Query the user table and compares the username from or to usernames in the table
+            if request_username: # If name exists in database return error message
+                return render_template('signup.html', username=username, error_User=error_Exist)
+            else: # otherwise if it doesn't exist in the database commit new user to database
+                new_user = User(username, password)
+                db.session.add(new_user)
+                db.session.commit()
+                return redirect('/')
+    
+    return render_template('signup.html')
+
+
+if __name__ == '__main__':
+    app.run()

@@ -53,7 +53,6 @@ def signup():
         error_VPW = 'The password does not match'
         error_Length = 'The username and password need to be 3 or more characters'
         
-
         # Basic validation  
         if len(username) == 0 or len(password) == 0: # If nothing is entered into the Username or Password return page with error message
             return render_template('signup.html', error_PW=error_PW,error_User=error_User,username=username)
@@ -65,8 +64,8 @@ def signup():
             return render_template('signup.html',username=username, error_PW=error_VPW) 
         
         else:
-            request_username = User.query.filter_by(username=username).first() # Query the user table and compares the username from or to usernames in the table
-            if request_username: # If name exists in database return error message
+            request_username = User.query.filter_by(username=username).first() # Query the user table and checks to see if the username exists in the table
+            if request_username: # will return a true if the user exist in table and false if the user doesn't exist
                 return render_template('signup.html', username=username, error_User=error_Exist)
             else: # otherwise if it doesn't exist in the database commit new user to database
                 new_user = User(username, password)
@@ -87,18 +86,21 @@ def login():
     error_User = "That username does not exist"
     error_PW = 'That password is incorrect'
 
-    username = User.query.all()
-
     if request.method == 'POST': # If the user attempts to post data to the table
         username = request.form['username'] # grab the username from the login page
-        #password = request.form['password'] # grab the password from the login page
+        password = request.form['password'] # grab the password from the login page
 
-        compare_name = User.query.filter_by(username=username).first() # Checks to see if the user name is in the data base by query the table for the name from the form
+        compare_user_info = User.query.filter_by(username=username).first() # Checks to see if the user name is in the data base by query the table for the name from the form
 
-        if compare_name: # If the user name is in the database return error meessage
-            render_template('login.html',error_User=error_User)
+        if compare_user_info: # if true
+            if password != compare_user_info.password: # Compare the password from the one recored in the database
+                return render_template('login.html', error_PW=error_PW)
+            elif password == compare_user_info.password: # Compare to see if the passwords are correct
+                return redirect('/newpost')
+        
+        return render_template('login.html', error_User=error_User)
 
-    return render_template("login.html",username=username) # renders the template for the user login page
+    return render_template("login.html") # renders the template for the user login page
 
 if __name__ == '__main__':
     app.run()

@@ -46,8 +46,6 @@ def signup():
         password = request.form['password']
         verify_password = request.form['verify_password'] 
 
-        request_username = User.username
-
         # Error messages 
         error_User = 'Please enter a username'
         error_Exist = 'The username already exist'
@@ -85,10 +83,22 @@ def newpost():
 # route for users to login to their own blog
 @app.route('/login', methods=['POST','GET'])
 def login():
+    
     error_User = "That username does not exist"
     error_PW = 'That password is incorrect'
 
-    return render_template("login.html", error_User=error_User, error_PW=error_PW) # renders the template for the user login page
+    username = User.query.all()
+
+    if request.method == 'POST': # If the user attempts to post data to the table
+        username = request.form['username'] # grab the username from the login page
+        #password = request.form['password'] # grab the password from the login page
+
+        compare_name = User.query.filter_by(username=username).first() # Checks to see if the user name is in the data base by query the table for the name from the form
+
+        if compare_name: # If the user name is in the database return error meessage
+            render_template('login.html',error_User=error_User)
+
+    return render_template("login.html",username=username) # renders the template for the user login page
 
 if __name__ == '__main__':
     app.run()

@@ -50,10 +50,14 @@ def logout():
 
 @app.route('/blog')
 def index():
-# display all th users who have signup to post blog post
-    registered_users = User.query.all() # Query everything from the user table
-    return render_template('blog.html', registered_users=registered_users)
+    registered_users = User.query.all()
+    user_id = request.args.get('id')
 
+    if user_id:
+        blog_posts = Blog.query.filter_by(owner_id=user_id).all()
+        return render_template('indvidual_post.html', blog_posts=blog_posts)
+
+    return render_template('blog.html', registered_users=registered_users)
 
 @app.route('/newpost', methods=['POST','GET'])
 def newpost():
@@ -66,9 +70,10 @@ def newpost():
             newpost = Blog(title, body, owner)
             db.session.add(newpost) # Stage the data for the database
             db.session.commit() # Commmit addtion to the database
-            return redirect('/blog?id=' + str(newpost.id)) # This should render tempate 
+            return redirect('/blog') # This should render tempate 
     
     return render_template("newpost.html")
+
 # route that handles the sign-in for the user
 @app.route('/signup', methods=['POST','GET'])
 def signup():

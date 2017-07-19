@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, flash
+from flask import Flask, request, redirect, render_template, flash,session
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -20,7 +20,7 @@ class Blog(db.Model):
 
     def __init__(self, title, body, owner):
         self.title = title
-        self.body = body
+        self.body = body    
         self.owner = owner
 
 # creates database of the users for blog posts
@@ -34,10 +34,42 @@ class User(db.Model):
         self.username = username
         self.password = password
 
-@app.route('/')
-def index():
-    return render_template('blog.html')
+# Checks to see if the user has logged in before displaying the page
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'register'] # the are the allowed app.route if the user is not logged in
+    if request.endpoint not in allowed_routes and 'username' not in session: # if the user is not logged in redirect them to the login page
+        return redirect('/login')
 
+# route for logout of user
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect('/login')
+
+
+@app.route('/blog')
+def index():
+# display all th users who have signup to post blog post
+    registered_users = User.query.all() # Query everything from the user table
+    return render_template('blog.html', registered_users=registered_users)
+
+
+@app.route('/newpost', methods=['POST','GET'])
+def newpost():
+    if request.method == 'POST':
+        title = request.form['title']
+        body = request.form['body']
+        owner = User.query.filter_by(username=session['username']).first()
+    
+        if title and body: # If title and body is true do what is below (This returns a falsely if length is 0)
+            newpost = Blog(title, body, owner)
+            db.session.add(newpost) # Stage the data for the database
+            db.session.commit() # Commmit addtion to the database
+            return redirect('/blog?id=' + str(newpost.id)) # This should render tempate 
+    
+    return render_template("newpost.html")
+# route that handles the sign-in for the user
 @app.route('/signup', methods=['POST','GET'])
 def signup():
     
@@ -71,19 +103,17 @@ def signup():
                 new_user = User(username, password)
                 db.session.add(new_user)
                 db.session.commit()
+                session['username'] = username # keeps the user logged in once they register
                 return redirect('/newpost')
     
     return render_template('signup.html')
 
-@app.route('/newpost', methods=['POST','GET'])
-def newpost():
-        return render_template("newpost.html")
 
 # route for users to login to their own blog
 @app.route('/login', methods=['POST','GET'])
 def login():
     
-    error_User = "That username does not exist"
+    error_User = "That username does not exist" 
     error_PW = 'That password is incorrect'
 
     if request.method == 'POST': # If the user attempts to post data to the table
@@ -96,6 +126,7 @@ def login():
             if password != compare_user_info.password: # Compare the password from the one recored in the database
                 return render_template('login.html', error_PW=error_PW)
             elif password == compare_user_info.password: # Compare to see if the passwords are correct
+                session['username'] = username # keeps the user logged in once they enter the correct login information
                 return redirect('/newpost')
         
         return render_template('login.html', error_User=error_User)

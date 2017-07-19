@@ -37,7 +37,7 @@ class User(db.Model):
 # Checks to see if the user has logged in before displaying the page
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register'] # the are the allowed app.route if the user is not logged in
+    allowed_routes = ['login', 'register','blog'] # the are the allowed app.route if the user is not logged in
     if request.endpoint not in allowed_routes and 'username' not in session: # if the user is not logged in redirect them to the login page
         return redirect('/login')
 
@@ -58,6 +58,16 @@ def index():
         return render_template('indvidual_post.html', blog_posts=blog_posts)
 
     return render_template('blog.html', registered_users=registered_users)
+
+@app.route('/posts')
+def individual_post():
+    post_id = request.args.get('id')
+
+    if post_id:
+            inv_post = Blog.query.filter_by(id=post_id).all()
+            return render_template('index.html', inv_post=inv_post)
+
+        
 
 @app.route('/newpost', methods=['POST','GET'])
 def newpost():

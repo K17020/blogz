@@ -37,7 +37,7 @@ class User(db.Model):
 # Checks to see if the user has logged in before displaying the page
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup','blog'] # the are the allowed app.route if the user is not logged in
+    allowed_routes = ['login', 'signup',] # the are the allowed app.route if the user is not logged in
     if request.endpoint not in allowed_routes and 'username' not in session: # if the user is not logged in redirect them to the login page
         return redirect('/login')
 
@@ -47,27 +47,40 @@ def logout():
     session.pop('username', None)
     return redirect('/login')
 
+
+
 # This route displays the name of all users
 @app.route('/blog')
 def index():
     registered_users = User.query.all() # Query everything in the user table
-    user_id = request.args.get('id') # get the id 
-
-    if user_id: # if a get request
-        blog_posts = Blog.query.filter_by(owner_id=user_id).all() 
-        author_post = User.query.filter_by(id=user_id).all()
-        return render_template('indvidual_post.html', blog_posts=blog_posts, author_post=author_post)
-
     return render_template('blog.html', registered_users=registered_users) # the blog template with all the users that are signed up
 
-@app.route('/posts')
-def individual_post():
-    post_id = request.args.get('id')
+# display a single post
+@app.route('/single_post')
+def single_user_post():
+    # getting the owner id of a blog post
+    post_id = request.args.get('post_id')
+    # getting the id of the user
+    user_id = request.args.get('users')
 
-    if post_id:
-            inv_post = Blog.query.filter_by(id=post_id).all()
-            username = User.query.filter_by(id=post_id).all()
-            return render_template('index.html', inv_post=inv_post, username=username)
+    #filtering the blog post based off the owern id
+    blog_posts = Blog.query.filter_by(id=post_id).all()
+    #filter by the user of the blog post
+    user_name = User.query.filter_by(id=user_id).all()
+
+    return render_template('single_post.html',blog_posts=blog_posts, user_name=user_name)
+
+# display all posts by a specific user
+@app.route('/users_post')
+def users_post():
+    
+    #ID is from the users table
+    user_id = request.args.get('users')
+    # filtering the blog posts from the user ID from the users table
+    blog_posts = Blog.query.filter_by(owner_id=user_id).all()
+    # filter the user names by the id of the person who did the post
+    user_name = User.query.filter_by(id=user_id).all()
+    return render_template('users_posts.html', blog_posts=blog_posts, user_name=user_name)
 
 
 @app.route('/newpost', methods=['POST','GET'])

@@ -37,7 +37,7 @@ class User(db.Model):
 # Checks to see if the user has logged in before displaying the page
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup','blog'] # the are the allowed app.route if the user is not logged in
+    allowed_routes = ['login', 'signup','index', 'individual_post'] # the are the allowed app.route if the user is not logged in
     if request.endpoint not in allowed_routes and 'username' not in session: # if the user is not logged in redirect them to the login page
         return redirect('/login')
 
@@ -55,21 +55,24 @@ def index():
 
     if user_id: # if a get request
         blog_posts = Blog.query.filter_by(owner_id=user_id).all() 
-        author_post = User.query.filter_by(id=user_id).all()
-        return render_template('indvidual_post.html', blog_posts=blog_posts, author_post=author_post)
+        return render_template('indvidual_post.html', blog_posts=blog_posts,)
 
     return render_template('blog.html', registered_users=registered_users) # the blog template with all the users that are signed up
 
 @app.route('/posts')
 def individual_post():
-    post_id = request.args.get('id')
+    
+    registered_users = User.query.all()
+    post_id = request.args.get('post_id')
+    user_id = request.args.get('user')
 
     if post_id:
-            inv_post = Blog.query.filter_by(id=post_id).all()
-            username = User.query.filter_by(id=post_id).all()
-            return render_template('index.html', inv_post=inv_post, username=username)
+        blog_post = Blog.query.filter_by(id=post_id).all()
+        return render_template('index.html',blog_post=blog_post)
+    
+    return render_template('blog.html')
 
-
+   
 @app.route('/newpost', methods=['POST','GET'])
 def newpost():
     if request.method == 'POST':

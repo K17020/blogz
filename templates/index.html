@@ -1,6 +1,5 @@
-{% extends 'base.html' %}{% block content %} {% for post in inv_post %}
-<h1>{{post.title}}</h1>
-<h2>{{post.body}}</h2>
-{% for user in username%}
-<p> written by <a href='/blog?id={{post.owner_id}}'>{{user.username}}</a></p>
-{% endfor %} {% endfor %} {% endblock%}
+{% extends 'base.html' %}{% block content %} {% for author in blog_post %}
+<h1>{{author.title}}</h1>
+<h2>{{author.body}}</h2>
+<p> Written by <a href='/blog?id={{author.owner_id}}'>{{author.owner.username}}</a></p>
+{% endfor %} {% endblock %}

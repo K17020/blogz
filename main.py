@@ -39,7 +39,7 @@ class User(db.Model):
 def require_login():
     allowed_routes = ['login', 'signup','index', 'individual_post','allpost'] # the are the allowed app.route if the user is not logged in
     if request.endpoint not in allowed_routes and 'username' not in session: # if the user is not logged in redirect them to the login page
-        return redirect('/login')
+        return redirect('/blog')
 
 # route for logout of user
 @app.route('/logout')
